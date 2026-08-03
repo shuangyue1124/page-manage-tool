@@ -1,0 +1,6 @@
+# Reasonix 本地运行时数据（桌面会话缓存等）
+.reasonix/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
