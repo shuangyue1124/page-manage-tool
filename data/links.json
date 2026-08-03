@@ -1,0 +1,166 @@
+[
+  {
+    "id": "my-scripts",
+    "title": "我的脚本仓库",
+    "url": "https://github.com/your-name/my-scripts",
+    "category": "personal",
+    "description": "自己写的自动化脚本（示例条目，可删除）",
+    "icon": "",
+    "tags": [
+      "github"
+    ],
+    "pinned": true,
+    "order": 1
+  },
+  {
+    "id": "cf-dashboard",
+    "title": "Cloudflare 控制台",
+    "url": "https://dash.cloudflare.com",
+    "category": "web-admin",
+    "description": "DNS、CDN、Pages、WAF 统一管理",
+    "icon": "",
+    "tags": [
+      "cdn",
+      "dns",
+      "pages"
+    ],
+    "pinned": true,
+    "order": 1
+  },
+  {
+    "id": "github",
+    "title": "GitHub",
+    "url": "https://github.com",
+    "category": "dev",
+    "description": "代码托管与协作",
+    "icon": "",
+    "tags": [
+      "git",
+      "ci"
+    ],
+    "pinned": true,
+    "order": 1
+  },
+  {
+    "id": "google",
+    "title": "Google",
+    "url": "https://www.google.com",
+    "category": "daily",
+    "description": "搜索引擎",
+    "icon": "",
+    "tags": [
+      "search"
+    ],
+    "pinned": true,
+    "order": 1
+  },
+  {
+    "id": "bilibili",
+    "title": "哔哩哔哩",
+    "url": "https://www.bilibili.com",
+    "category": "daily",
+    "description": "视频与直播",
+    "icon": "",
+    "tags": [
+      "video"
+    ],
+    "pinned": false,
+    "order": 2
+  },
+  {
+    "id": "mdn",
+    "title": "MDN Web Docs",
+    "url": "https://developer.mozilla.org",
+    "category": "dev",
+    "description": "Web 技术权威文档",
+    "icon": "",
+    "tags": [
+      "docs",
+      "html",
+      "css",
+      "js"
+    ],
+    "pinned": false,
+    "order": 2
+  },
+  {
+    "id": "vercel-dashboard",
+    "title": "Vercel",
+    "url": "https://vercel.com/dashboard",
+    "category": "web-admin",
+    "description": "前端托管与部署",
+    "icon": "",
+    "tags": [
+      "deploy"
+    ],
+    "pinned": false,
+    "order": 2
+  },
+  {
+    "id": "zhihu",
+    "title": "知乎",
+    "url": "https://www.zhihu.com",
+    "category": "daily",
+    "description": "问答与专栏",
+    "icon": "",
+    "tags": [
+      "q&a"
+    ],
+    "pinned": false,
+    "order": 3
+  },
+  {
+    "id": "nginx-proxy-manager",
+    "title": "Nginx Proxy Manager",
+    "url": "http://192.168.1.1:81",
+    "category": "web-admin",
+    "description": "反向代理与 SSL 证书面板",
+    "icon": "",
+    "tags": [
+      "nginx",
+      "proxy",
+      "ssl"
+    ],
+    "pinned": false,
+    "order": 3
+  },
+  {
+    "id": "stack-overflow",
+    "title": "Stack Overflow",
+    "url": "https://stackoverflow.com",
+    "category": "dev",
+    "description": "编程问答社区",
+    "icon": "",
+    "tags": [
+      "q&a"
+    ],
+    "pinned": false,
+    "order": 3
+  },
+  {
+    "id": "portainer",
+    "title": "Portainer",
+    "url": "http://192.168.1.1:9000",
+    "category": "web-admin",
+    "description": "Docker 容器管理面板",
+    "icon": "",
+    "tags": [
+      "docker"
+    ],
+    "pinned": false,
+    "order": 4
+  },
+  {
+    "id": "uptime-kuma",
+    "title": "Uptime Kuma",
+    "url": "http://192.168.1.1:3001",
+    "category": "web-admin",
+    "description": "站点可用性监控",
+    "icon": "",
+    "tags": [
+      "monitor"
+    ],
+    "pinned": false,
+    "order": 5
+  }
+]

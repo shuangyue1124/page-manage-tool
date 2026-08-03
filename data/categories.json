@@ -1,0 +1,30 @@
+[
+  {
+    "id": "personal",
+    "name": "个人工具",
+    "icon": "🧰",
+    "description": "自己写的脚本与自用工具",
+    "order": 1
+  },
+  {
+    "id": "web-admin",
+    "name": "网页管理",
+    "icon": "🛠️",
+    "description": "服务器面板、CDN、DNS 等管理入口",
+    "order": 2
+  },
+  {
+    "id": "dev",
+    "name": "开发资源",
+    "icon": "⚡",
+    "description": "文档、代码托管与协作",
+    "order": 3
+  },
+  {
+    "id": "daily",
+    "name": "常用站点",
+    "icon": "⭐",
+    "description": "日常高频访问",
+    "order": 4
+  }
+]
