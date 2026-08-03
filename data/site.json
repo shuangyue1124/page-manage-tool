@@ -2,6 +2,6 @@
   "title": "我的导航",
   "subtitle": "个人工具 · 网页管理 · 开发资源",
   "footer": "数据由 data/*.json 驱动，脚本维护，Cloudflare Pages 自动构建",
-  "github": "https://github.com/your-name/your-nav-repo",
+  "github": "https://github.com/shuangyue1124/page-manage-tool",
   "theme": "auto"
 }
