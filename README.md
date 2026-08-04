@@ -62,6 +62,24 @@ node scripts/manage.mjs validate
 node scripts/manage.mjs push "nav: 添加 NPM 面板"
 ```
 
+## 一键脚本（双击）
+
+不想敲命令？直接**双击项目根目录的 `manage-nav.bat`**，会打开交互式菜单：
+
+```
+  1. 📋 查看链接
+  2. ➕  添加链接
+  3. ✏️  修改链接
+  4. 🗑️  删除链接
+  5. 🔀 重新排序（置顶优先 → 中文拼音序）
+  6. 🗂️  分区管理（查看 / 新建）
+  7. 🚀 推送部署（git 提交并推送，触发 Cloudflare 自动构建）
+  0. 退出
+```
+
+按菜单编号操作即可：添加/修改/删除后选 `7` 推送，Cloudflare Pages 自动更新网页。
+（想更顺手，可把 `manage-nav.bat` 发送到桌面快捷方式，改名"一键管理导航页"。）
+
 ## 管理脚本速查
 
 ```powershell

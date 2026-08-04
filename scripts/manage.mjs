@@ -24,6 +24,8 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { createInterface } from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -355,6 +357,170 @@ function readAll() {
   };
 }
 
+/* ---------------- 交互式菜单（一键脚本模式） ---------------- */
+
+const MENU = `
+==================================================
+  导航页管理 · 一键模式
+==================================================
+  1. 📋 查看链接
+  2. ➕  添加链接
+  3. ✏️  修改链接
+  4. 🗑️  删除链接
+  5. 🔀 重新排序（置顶优先 → 中文拼音序）
+  6. 🗂️  分区管理（查看 / 新建）
+  7. 🚀 推送部署（git 提交并推送，触发 Cloudflare 自动构建）
+  0. 退出
+--------------------------------------------------`;
+
+async function fail(rl, msg) {
+  log(`❌ ${msg}`);
+  return undefined;
+}
+
+/** 提问并去除可能的 BOM 前缀（兼容 PowerShell 管道注入的 UTF-8 BOM） */
+const ask = async (rl, prompt) => (await rl.question(prompt)).replace(/^\uFEFF/, "");
+
+/** 提示输入；空回车返回 undefined（不变），- 表示清空 */
+async function promptKeep(rl, label, current) {
+  const v = (await ask(rl, `${label} [${current}]（回车不变，- 清空）: `)).trim();
+  return v === "" ? undefined : v;
+}
+
+function pickLink(rl, links, action) {
+  log("");
+  links.forEach((l, i) => {
+    const cat = readJSON(DATA.categories).find((c) => c.id === l.category)?.name || l.category;
+    log(`  ${String(i + 1).padStart(2)}. ${l.pinned ? "📌" : "  "} ${l.title}  →  ${l.url}  (${cat})`);
+  });
+  return links;
+}
+
+async function interactiveAdd(rl) {
+  const { categories } = readAll();
+  if (!categories.length) {
+    await fail(rl, "还没有分区，请先进入 6 分区管理 新建");
+    return;
+  }
+  log("\n可用分区：");
+  categories.forEach((c, i) => log(`  ${i + 1}. ${c.icon || "•"} ${c.name} (${c.id})`));
+  const idx = parseInt(await ask(rl, "选择分区编号: "), 10);
+  const cat = categories[idx - 1];
+  if (!cat) { await fail(rl, "分区编号无效"); return; }
+
+  const title = (await ask(rl, "标题: ")).trim();
+  if (!title) { await fail(rl, "标题不能为空"); return; }
+  const url = (await ask(rl, "URL: ")).trim();
+  if (!url) { await fail(rl, "URL 不能为空"); return; }
+  const desc = (await ask(rl, "描述（回车跳过）: ")).trim();
+  const tags = (await ask(rl, "标签（逗号分隔，回车跳过）: ")).trim();
+  const pin = (await ask(rl, "置顶? (y/n): ")).trim().toLowerCase();
+
+  cmdAdd({
+    positional: ["add", cat.id, title, url],
+    opts: {
+      desc: desc || undefined,
+      tags: tags || undefined,
+      pin: pin === "y" ? "true" : undefined,
+    },
+  });
+  log("💡 完成后选 7 推送部署，Cloudflare 会自动更新网页");
+}
+
+async function interactiveUpdate(rl) {
+  const { links } = readAll();
+  if (!links.length) { await fail(rl, "暂无链接"); return; }
+  pickLink(rl, links, "update");
+  const idx = parseInt(await ask(rl, "\n选择要修改的链接编号: "), 10);
+  const link = links[idx - 1];
+  if (!link) { await fail(rl, "编号无效"); return; }
+
+  const opts = {};
+  const title = await promptKeep(rl, "标题", link.title);
+  if (title) opts.title = title;
+  const url = await promptKeep(rl, "URL", link.url);
+  if (url) opts.url = url;
+  const desc = await promptKeep(rl, "描述", link.description || "");
+  if (desc !== undefined) opts.desc = desc === "-" ? "" : desc;
+  const icon = await promptKeep(rl, "图标(URL/emoji)", link.icon || "");
+  if (icon !== undefined) opts.icon = icon === "-" ? "" : icon;
+  const tags = await promptKeep(rl, "标签(逗号分隔)", (link.tags || []).join(","));
+  if (tags !== undefined) opts.tags = tags === "-" ? "" : tags;
+  const pin = await promptKeep(rl, "置顶(y/n)", link.pinned ? "y" : "n");
+  if (pin === "y") opts.pin = "true";
+  else if (pin === "n") opts.unpin = "true";
+
+  if (!Object.keys(opts).length) { log("ℹ️ 未做任何修改"); return; }
+  cmdUpdate({ positional: ["update", link.id], opts });
+  log("💡 完成后选 7 推送部署");
+}
+
+async function interactiveRemove(rl) {
+  const { links } = readAll();
+  if (!links.length) { await fail(rl, "暂无链接"); return; }
+  pickLink(rl, links, "remove");
+  const idx = parseInt(await ask(rl, "\n选择要删除的链接编号: "), 10);
+  const link = links[idx - 1];
+  if (!link) { await fail(rl, "编号无效"); return; }
+  const confirm = (await ask(rl, `确认删除「${link.title}」? (y/n): `)).trim().toLowerCase();
+  if (confirm !== "y") { log("已取消"); return; }
+  cmdRemove({ positional: ["remove", link.id] });
+  log("💡 完成后选 7 推送部署");
+}
+
+async function interactiveCategories(rl) {
+  log("\n  1. 查看分区  2. 新建分区  0. 返回");
+  const c = (await ask(rl, "选择: ")).trim();
+  if (c === "1") cmdCategories();
+  else if (c === "2") {
+    const name = (await ask(rl, "分区名称: ")).trim();
+    if (!name) { await fail(rl, "名称不能为空"); return; }
+    const icon = (await ask(rl, "图标 emoji（回车默认 🔗）: ")).trim();
+    const desc = (await ask(rl, "描述（回车跳过）: ")).trim();
+    cmdAddCategory({
+      positional: ["add-category", name],
+      opts: { icon: icon || undefined, desc: desc || undefined },
+    });
+  }
+}
+
+async function interactivePush(rl) {
+  // 推送前先校验数据
+  cmdValidate();
+  if (process.exitCode) {
+    process.exitCode = 0;
+    log("❌ 数据校验未通过，已取消推送");
+    return;
+  }
+  const msg = (await ask(rl, "提交说明（回车默认 nav: update links）: ")).trim();
+  cmdPush({ positional: ["push", msg || undefined] });
+}
+
+async function cmdInteractive() {
+  const rl = createInterface({ input, output });
+  let running = true;
+  try {
+    log(MENU);
+    while (running) {
+      const choice = (await ask(rl, "\n请选择操作: ")).trim();
+      switch (choice) {
+        case "1": cmdList({ positional: ["list"], opts: {} }); break;
+        case "2": await interactiveAdd(rl); break;
+        case "3": await interactiveUpdate(rl); break;
+        case "4": await interactiveRemove(rl); break;
+        case "5": cmdSort({ opts: {} }); break;
+        case "6": await interactiveCategories(rl); break;
+        case "7": await interactivePush(rl); break;
+        case "0": running = false; break;
+        default: log("❌ 无效选项，请输入菜单编号");
+      }
+    }
+    log("👋 已退出，再见！");
+  } finally {
+    rl.close();
+  }
+}
+
 /* ---------------- 入口 ---------------- */
 
 const USAGE = `导航页管理脚本
@@ -369,7 +535,8 @@ const USAGE = `导航页管理脚本
   add-category <名称>         新建分区 [--icon] [--desc]
   remove-category <id|名称>   删除分区 [--force]
   validate                    校验数据
-  push [提交说明]              git 提交并推送（触发 Pages 构建）`;
+  push [提交说明]              git 提交并推送（触发 Pages 构建）
+  interactive                 一键交互菜单（配合 manage-nav.bat 双击使用）`;
 
 function main() {
   const { positional, opts } = parseArgs(process.argv.slice(2));
@@ -386,6 +553,10 @@ function main() {
       case "remove-category": return cmdRemoveCategory({ positional, opts });
       case "validate": return cmdValidate();
       case "push": return cmdPush({ positional });
+      case "interactive": return cmdInteractive().catch((err) => {
+        console.error(`❌ ${err.message}`);
+        process.exitCode = 1;
+      });
       case undefined:
       case "help":
       case "-h":
@@ -401,3 +572,4 @@ function main() {
 }
 
 main();
+
