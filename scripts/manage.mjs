@@ -154,7 +154,7 @@ function cmdList({ positional, opts }) {
     if (filter && !(l.category === filter || (findCategory(categories, filter)?.id === l.category))) continue;
     const catName = categories.find((c) => c.id === l.category)?.name || l.category || "未分类";
     rows.push(
-      `  [${l.order ?? "-"}]${l.pinned ? " 📌" : "   "} ${l.id.padEnd(28)} ${l.title.padEnd(20)} → ${l.url}  (${catName})`
+      `  [${l.order ?? "-"}]${l.pinned ? " ★" : "  "} ${l.id.padEnd(28)} ${l.title.padEnd(20)} → ${l.url}  (${catName})`
     );
   }
   log(rows.length ? rows.join("\n") : "（空）");
@@ -190,7 +190,7 @@ function cmdAdd({ positional, opts }) {
   links.push(link);
   reorder(links, categories);
   writeJSON(DATA.links, links);
-  log(`✅ 已添加: ${title} → ${url}（分区：${cat.name}，id：${link.id}）`);
+  log(`[OK] 已添加: ${title} → ${url}（分区：${cat.name}，id：${link.id}）`);
   log(`   当前顺序为自动排序结果，可用 sort 重新排序。`);
 }
 
@@ -223,7 +223,7 @@ function cmdUpdate({ positional, opts }) {
 
   reorder(links, categories);
   writeJSON(DATA.links, links);
-  log(`✅ 已更新 ${link.title}（id: ${link.id}）：${changes.join("、") || "无字段变化"}`);
+  log(`[OK] 已更新 ${link.title}（id: ${link.id}）：${changes.join("、") || "无字段变化"}`);
 }
 
 function cmdRemove({ positional }) {
@@ -236,14 +236,14 @@ function cmdRemove({ positional }) {
   links.splice(idx, 1);
   reorder(links, readJSON(DATA.categories));
   writeJSON(DATA.links, links);
-  log(`🗑️  已删除: ${link.title}（${link.url}）`);
+  log(`[删除] 已删除: ${link.title}（${link.url}）`);
 }
 
 function cmdSort({ opts }) {
   const { links, categories } = readAll();
   const touched = reorder(links, categories, opts.category);
   writeJSON(DATA.links, links);
-  log(`✅ 排序完成${opts.category ? `（分类 ${opts.category}）` : ""}`);
+  log(`[OK] 排序完成${opts.category ? `（分类 ${opts.category}）` : ""}`);
   if (touched.length) {
     log("   顺序变化：");
     touched.forEach((t) => log(`   · ${t}`));
@@ -256,7 +256,7 @@ function cmdCategories() {
   const { categories, links } = readAll();
   for (const c of [...categories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) {
     const n = links.filter((l) => l.category === c.id).length;
-    log(`  ${c.order ?? "-"}. ${c.icon || "•"} ${c.name} (${c.id}) — ${c.description || ""} [${n} 个链接]`);
+    log(`  ${c.order ?? "-"}. ${c.name} (${c.id}) — ${c.description || ""} [${n} 个链接]`);
   }
 }
 
@@ -276,7 +276,7 @@ function cmdAddCategory({ positional, opts }) {
     order,
   });
   writeJSON(DATA.categories, categories);
-  log(`✅ 已新建分类: ${name} (${id})`);
+  log(`[OK] 已新建分类: ${name} (${id})`);
 }
 
 function cmdRemoveCategory({ positional, opts }) {
@@ -296,7 +296,7 @@ function cmdRemoveCategory({ positional, opts }) {
   reorder(links, categories);
   writeJSON(DATA.categories, categories);
   writeJSON(DATA.links, links);
-  log(`🗑️  已删除分类: ${cat.name}${orphan.length ? `（连带删除 ${orphan.length} 个链接）` : ""}`);
+  log(`[删除] 已删除分类: ${cat.name}${orphan.length ? `（连带删除 ${orphan.length} 个链接）` : ""}`);
 }
 
 function cmdValidate() {
@@ -323,11 +323,11 @@ function cmdValidate() {
   if (!site || !site.title) errors.push("site.json 缺少 title");
 
   if (errors.length) {
-    log(`❌ 校验失败（${errors.length} 个问题）：`);
+    log(`[错误] 校验失败（${errors.length} 个问题）：`);
     errors.forEach((e) => log(`  · ${e}`));
     process.exitCode = 1;
   } else {
-    log(`✅ 校验通过：${categories.length} 个分区，${links.length} 个链接`);
+    log(`[OK] 校验通过：${categories.length} 个分区，${links.length} 个链接`);
   }
 }
 
@@ -346,7 +346,7 @@ function cmdPush({ positional }) {
     throw new Error("未配置 git remote。请先: git remote add origin <仓库地址>");
   }
   run("git", ["push"]);
-  log(`🚀 已推送 ${message}，Cloudflare Pages 将自动构建部署。`);
+  log(`[推送] 已推送 ${message}，Cloudflare Pages 将自动构建部署。`);
 }
 
 function readAll() {
@@ -362,19 +362,20 @@ function readAll() {
 const MENU = `
 ==================================================
   导航页管理 · 一键模式
+  操作方式：输入数字编号后按回车键
 ==================================================
-  1. 📋 查看链接
-  2. ➕  添加链接
-  3. ✏️  修改链接
-  4. 🗑️  删除链接
-  5. 🔀 重新排序（置顶优先 → 中文拼音序）
-  6. 🗂️  分区管理（查看 / 新建）
-  7. 🚀 推送部署（git 提交并推送，触发 Cloudflare 自动构建）
+  1. 查看链接
+  2. 添加链接
+  3. 修改链接
+  4. 删除链接
+  5. 重新排序（置顶优先 → 中文拼音序）
+  6. 分区管理（查看 / 新建）
+  7. 推送部署（git 提交并推送，触发 Cloudflare 自动构建）
   0. 退出
 --------------------------------------------------`;
 
 async function fail(rl, msg) {
-  log(`❌ ${msg}`);
+  log(`[错误] ${msg}`);
   return undefined;
 }
 
@@ -391,7 +392,7 @@ function pickLink(rl, links, action) {
   log("");
   links.forEach((l, i) => {
     const cat = readJSON(DATA.categories).find((c) => c.id === l.category)?.name || l.category;
-    log(`  ${String(i + 1).padStart(2)}. ${l.pinned ? "📌" : "  "} ${l.title}  →  ${l.url}  (${cat})`);
+    log(`  ${String(i + 1).padStart(2)}. ${l.pinned ? "★" : " "} ${l.title}  →  ${l.url}  (${cat})`);
   });
   return links;
 }
@@ -403,7 +404,7 @@ async function interactiveAdd(rl) {
     return;
   }
   log("\n可用分区：");
-  categories.forEach((c, i) => log(`  ${i + 1}. ${c.icon || "•"} ${c.name} (${c.id})`));
+  categories.forEach((c, i) => log(`  ${i + 1}. ${c.name} (${c.id})`));
   const idx = parseInt(await ask(rl, "选择分区编号: "), 10);
   const cat = categories[idx - 1];
   if (!cat) { await fail(rl, "分区编号无效"); return; }
@@ -424,7 +425,7 @@ async function interactiveAdd(rl) {
       pin: pin === "y" ? "true" : undefined,
     },
   });
-  log("💡 完成后选 7 推送部署，Cloudflare 会自动更新网页");
+  log("提示: 完成后选 7 推送部署，Cloudflare 会自动更新网页");
 }
 
 async function interactiveUpdate(rl) {
@@ -450,9 +451,9 @@ async function interactiveUpdate(rl) {
   if (pin === "y") opts.pin = "true";
   else if (pin === "n") opts.unpin = "true";
 
-  if (!Object.keys(opts).length) { log("ℹ️ 未做任何修改"); return; }
+  if (!Object.keys(opts).length) { log("[提示] 未做任何修改"); return; }
   cmdUpdate({ positional: ["update", link.id], opts });
-  log("💡 完成后选 7 推送部署");
+  log("提示: 完成后选 7 推送部署");
 }
 
 async function interactiveRemove(rl) {
@@ -465,7 +466,7 @@ async function interactiveRemove(rl) {
   const confirm = (await ask(rl, `确认删除「${link.title}」? (y/n): `)).trim().toLowerCase();
   if (confirm !== "y") { log("已取消"); return; }
   cmdRemove({ positional: ["remove", link.id] });
-  log("💡 完成后选 7 推送部署");
+  log("提示: 完成后选 7 推送部署");
 }
 
 async function interactiveCategories(rl) {
@@ -475,7 +476,7 @@ async function interactiveCategories(rl) {
   else if (c === "2") {
     const name = (await ask(rl, "分区名称: ")).trim();
     if (!name) { await fail(rl, "名称不能为空"); return; }
-    const icon = (await ask(rl, "图标 emoji（回车默认 🔗）: ")).trim();
+    const icon = (await ask(rl, "图标（可填 emoji 或图片 URL，回车用默认）: ")).trim();
     const desc = (await ask(rl, "描述（回车跳过）: ")).trim();
     cmdAddCategory({
       positional: ["add-category", name],
@@ -489,7 +490,7 @@ async function interactivePush(rl) {
   cmdValidate();
   if (process.exitCode) {
     process.exitCode = 0;
-    log("❌ 数据校验未通过，已取消推送");
+    log("[错误] 数据校验未通过，已取消推送");
     return;
   }
   const msg = (await ask(rl, "提交说明（回车默认 nav: update links）: ")).trim();
@@ -512,10 +513,10 @@ async function cmdInteractive() {
         case "6": await interactiveCategories(rl); break;
         case "7": await interactivePush(rl); break;
         case "0": running = false; break;
-        default: log("❌ 无效选项，请输入菜单编号");
+        default: log("[错误] 无效选项，请输入菜单编号");
       }
     }
-    log("👋 已退出，再见！");
+    log("再见！");
   } finally {
     rl.close();
   }
@@ -554,7 +555,7 @@ function main() {
       case "validate": return cmdValidate();
       case "push": return cmdPush({ positional });
       case "interactive": return cmdInteractive().catch((err) => {
-        console.error(`❌ ${err.message}`);
+        console.error(`[错误] ${err.message}`);
         process.exitCode = 1;
       });
       case undefined:
@@ -566,7 +567,7 @@ function main() {
         throw new Error(`未知命令: ${cmd}\n\n${USAGE}`);
     }
   } catch (err) {
-    console.error(`❌ ${err.message}`);
+    console.error(`[错误] ${err.message}`);
     process.exitCode = 1;
   }
 }
