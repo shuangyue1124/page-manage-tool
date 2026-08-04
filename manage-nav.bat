@@ -3,8 +3,10 @@ rem ============================================
 rem  Nav Manager - double-click to edit your page
 rem  Changes are pushed to GitHub automatically,
 rem  Cloudflare Pages rebuilds the site.
+rem  NOTE: keep this file pure ASCII (English only).
+rem  All Chinese prompts come from the Node script.
 rem ============================================
-title Nav Manager - 导航页管理
+title Nav Manager
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
@@ -20,15 +22,15 @@ if errorlevel 1 (
 
 echo.
 echo   ==========================================
-echo     Nav Manager - 导航页管理工具
-echo     输入菜单编号后按回车键即可操作
-echo     修改完链接后选 7 推送部署
+echo     Nav Manager - navigation page editor
+echo     Type a menu number and press Enter.
+echo     After editing, choose 7 to push and deploy.
 echo   ==========================================
 echo.
 
 node "%~dp0scripts\manage.mjs" interactive
 
 echo.
-echo   操作完成，窗口即将关闭... 按任意键退出
+echo   Done. Press any key to exit.
 pause >nul
 endlocal

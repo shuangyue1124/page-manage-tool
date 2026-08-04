@@ -55,6 +55,19 @@
     "order": 1
   },
   {
+    "id": "bilibili",
+    "title": "哔哩哔哩",
+    "url": "https://www.bilibili.com",
+    "category": "daily",
+    "description": "视频与直播",
+    "icon": "",
+    "tags": [
+      "video"
+    ],
+    "pinned": false,
+    "order": 2
+  },
+  {
     "id": "mdn",
     "title": "MDN Web Docs",
     "url": "https://developer.mozilla.org",
@@ -84,17 +97,17 @@
     "order": 2
   },
   {
-    "id": "bilibili",
-    "title": "哔哩哔哩",
-    "url": "https://www.bilibili.com",
+    "id": "zhihu",
+    "title": "知乎",
+    "url": "https://www.zhihu.com",
     "category": "daily",
-    "description": "视频与直播",
+    "description": "问答与专栏",
     "icon": "",
     "tags": [
-      "video"
+      "q&a"
     ],
     "pinned": false,
-    "order": 2
+    "order": 3
   },
   {
     "id": "nginx-proxy-manager",
@@ -117,19 +130,6 @@
     "url": "https://stackoverflow.com",
     "category": "dev",
     "description": "编程问答社区",
-    "icon": "",
-    "tags": [
-      "q&a"
-    ],
-    "pinned": false,
-    "order": 3
-  },
-  {
-    "id": "zhihu",
-    "title": "知乎",
-    "url": "https://www.zhihu.com",
-    "category": "daily",
-    "description": "问答与专栏",
     "icon": "",
     "tags": [
       "q&a"
