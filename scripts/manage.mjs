@@ -333,14 +333,37 @@ function cmdValidate() {
 
 function cmdPush({ positional }) {
   const message = positional[1] || "nav: update links";
-  const run = (cmd, args) => {
-    const r = spawnSync(cmd, args, { stdio: "inherit", cwd: ROOT });
+  const run = (cmd, args, opts = {}) => {
+    const r = spawnSync(cmd, args, {
+      stdio: opts.silent ? "ignore" : "inherit",
+      cwd: ROOT,
+    });
     if (r.error) throw new Error(`无法执行 ${cmd}: ${r.error.message}`);
-    if (r.status !== 0) throw new Error(`${cmd} 退出码 ${r.status}`);
+    if (r.status !== 0 && !opts.allowFail) throw new Error(`${cmd} 退出码 ${r.status}`);
+    return r;
   };
-  run("git", ["rev-parse", "--is-inside-work-tree"]);
+  // 静默确认在 git 仓库内（不向屏幕输出 true）
+  run("git", ["rev-parse", "--is-inside-work-tree"], { silent: true });
+
+  // 没有实际变更时（如刚改完又改回原样），git commit 会报 nothing to commit 并返回 1
+  const dirty = spawnSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf8" });
+  if (!dirty.stdout.trim()) {
+    log("[提示] 没有需要推送的更改（数据未变化），已跳过推送。");
+    return;
+  }
+
   run("git", ["add", "-A"]);
-  run("git", ["commit", "-m", message]);
+  const commit = run("git", ["commit", "-m", message], { allowFail: true });
+  if (commit.status !== 0) {
+    // commit 失败时再确认一次：若无待提交变更则视为正常跳过，否则为真实错误
+    const after = spawnSync("git", ["status", "--porcelain"], { cwd: ROOT, encoding: "utf8" });
+    if (!after.stdout.trim()) {
+      log("[提示] 没有需要推送的更改（数据未变化），已跳过推送。");
+      return;
+    }
+    throw new Error(`git commit 退出码 ${commit.status}`);
+  }
+
   const remotes = spawnSync("git", ["remote"], { cwd: ROOT, encoding: "utf8" });
   if (!remotes.stdout.trim()) {
     throw new Error("未配置 git remote。请先: git remote add origin <仓库地址>");
